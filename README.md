@@ -1,24 +1,35 @@
-# README
+# trxtn-backend
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Rails 8 API backend.
 
-Things you may want to cover:
+## Requirements
 
-* Ruby version
+- Ruby 3.4.1 ([asdf](https://asdf-vm.com/) recommended)
+- Docker (for PostgreSQL)
 
-* System dependencies
+## Setup
 
-* Configuration
+```bash
+bin/setup
+```
 
-* Database creation
+This will copy `.env.example` to `.env`, install gems, start PostgreSQL via Docker, and create/migrate the database. Update `.env` with your credentials if needed before running.
 
-* Database initialization
+## Running
 
-* How to run the test suite
+```bash
+bin/rails server
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+## Database
 
-* Deployment instructions
+```bash
+bin/rails db:migrate          # run pending migrations
+bin/rails db:reset            # drop, recreate, and migrate
+```
 
-* ...
+## Tests
+
+```bash
+bin/rails test
+```
