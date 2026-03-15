@@ -1,0 +1,24 @@
+meta {
+  name: Logout
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/auth/logout
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refresh_token": "{{refresh_token}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 204) {
+    bru.setEnvVar("access_token", "");
+    bru.setEnvVar("refresh_token", "");
+  }
+}
