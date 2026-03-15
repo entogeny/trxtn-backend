@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "Running pre-commit checks..."
+bundle exec rspec
+bin/rubocop
+bin/bundler-audit
+bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error
