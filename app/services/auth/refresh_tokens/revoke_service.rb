@@ -5,8 +5,8 @@ module Auth
         token_digest = Digest::SHA256.hexdigest(raw_token)
         record = RefreshToken.find_by(token_digest: token_digest)
 
-        raise Auth::Errors::TokenNotFound if record.nil?
-        raise Auth::Errors::TokenRevoked if record.revoked_at.present?
+        raise Errors::TokenNotFound if record.nil?
+        raise Errors::TokenRevoked if record.revoked_at.present?
 
         record.update!(revoked_at: Time.current)
       end

@@ -5,9 +5,9 @@ module Auth
         decoded = JWT.decode(token, secret, true, algorithm: "HS256")
         decoded.first.with_indifferent_access
       rescue JWT::ExpiredSignature
-        raise Auth::Errors::TokenExpired
+        raise Errors::TokenExpired
       rescue JWT::DecodeError
-        raise Auth::Errors::TokenInvalid
+        raise Errors::TokenInvalid
       end
 
       def self.secret

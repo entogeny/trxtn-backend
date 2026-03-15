@@ -28,6 +28,7 @@ If a service is doing two things, it should be two services. If you find yoursel
 Services expose a single public class method: `.call`.
 
 ```ruby
+# From an external caller (e.g. a controller or job), always use the fully qualified path:
 Auth::AccessTokens::EncodeService.call({ sub: user.id })
 Auth::RefreshTokens::IssueService.call(user)
 ```
@@ -105,15 +106,40 @@ Auth::Jwt::EncodeService             ✗
 
 If the underlying implementation changes (e.g. moving from JWT to a different token format), a concept-named namespace remains valid. An implementation-named namespace would require renaming the namespace and all its call sites.
 
+## Constant References
+
+Within a service file, use the shortest unambiguous reference permitted by the lexical scope established by the surrounding `module` declarations. Do not repeat namespace segments that Ruby can already resolve from context.
+
+```ruby
+# Inside module Auth; module RefreshTokens:
+raise Errors::TokenExpired          # ✓ Auth::Errors resolved via Auth nesting
+raise Auth::Errors::TokenExpired    # ✗ Redundant — repeats what the module already declares
+
+IssueService.call(user)                    # ✓ Same namespace
+AccessTokens::EncodeService.call(payload)  # ✓ Sibling namespace under Auth
+```
+
+The `module` declarations at the top of each file are the authoritative source of what is in lexical scope. References inside the file should reflect that scope.
+
+External callers — controllers, jobs, rake tasks, the console — always use fully qualified paths, since they have no `Auth` module nesting:
+
+```ruby
+# In a controller:
+Auth::AccessTokens::EncodeService.call({ sub: user.id })
+rescue Auth::Errors::TokenExpired
+```
+
+This means two reference styles coexist intentionally: short inside the namespace, fully qualified outside it.
+
 ## Error Handling
 
 Services raise named error classes rather than returning error codes or nil. This keeps service code clean and puts error handling decisions in the caller.
 
 ```ruby
-# In a service:
-raise Auth::Errors::TokenExpired
+# In a service (inside module Auth):
+raise Errors::TokenExpired
 
-# In the controller or before_action:
+# In the controller or before_action (outside module Auth):
 rescue Auth::Errors::TokenExpired
   render_unauthorized("Token has expired")
 ```
