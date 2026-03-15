@@ -31,5 +31,21 @@ bin/rails db:reset            # drop, recreate, and migrate
 ## Tests
 
 ```bash
-bin/rails test
+rspec spec/unit          # fast unit tests only
+rspec spec/integration   # integration tests only
+rspec                    # full suite
+```
+
+Unit specs test models and services in isolation. Integration specs test complete auth flows through the full HTTP stack.
+
+See [documentation/design_choices/testing.md](documentation/design_choices/testing.md) for the full rationale.
+
+## Test Credentials
+
+The test JWT secret lives in `config/credentials/test.yml.enc`. To run tests on a new machine you will need `config/credentials/test.key`. Keep this key in a shared password manager — if it is lost, the test credentials file must be re-created.
+
+To edit test credentials:
+
+```bash
+EDITOR="your_editor" bin/rails credentials:edit --environment test
 ```
