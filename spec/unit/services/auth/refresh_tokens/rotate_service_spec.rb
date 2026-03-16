@@ -69,7 +69,7 @@ module Auth
             create(:refresh_token, user: user, token_digest: Digest::SHA256.hexdigest(raw_token))
 
             allow_any_instance_of(IssueService).to receive(:call).and_return(false)
-            allow_any_instance_of(IssueService).to receive(:errors).and_return([{ message: "issue failed" }])
+            allow_any_instance_of(IssueService).to receive(:errors).and_return([ { message: "issue failed" } ])
 
             described_class.new(raw_token: raw_token).call
 
