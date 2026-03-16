@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "POST /auth/refresh" do
+RSpec.describe "POST /api/rest/v1/auth/refresh" do
   let(:user) { create(:user) }
 
   def issue_token(user)
@@ -13,19 +13,19 @@ RSpec.describe "POST /auth/refresh" do
     let(:raw_token) { issue_token(user) }
 
     it "returns 200 with a new access token and refresh token" do
-      post "/auth/refresh", params: { refresh_token: raw_token }
+      post "/api/rest/v1/auth/refresh", params: { refresh_token: raw_token }
       expect(response).to have_http_status(:ok)
       expect(json).to include("access_token", "refresh_token")
     end
 
     it "revokes the old refresh token in the database" do
-      post "/auth/refresh", params: { refresh_token: raw_token }
+      post "/api/rest/v1/auth/refresh", params: { refresh_token: raw_token }
       record = RefreshToken.find_by(token_digest: Digest::SHA256.hexdigest(raw_token))
       expect(record.revoked_at).not_to be_nil
     end
 
     it "returns a new refresh token different from the original" do
-      post "/auth/refresh", params: { refresh_token: raw_token }
+      post "/api/rest/v1/auth/refresh", params: { refresh_token: raw_token }
       expect(json["refresh_token"]).not_to eq(raw_token)
     end
   end
@@ -36,7 +36,7 @@ RSpec.describe "POST /auth/refresh" do
       raw_token = "expired_raw"
       allow(RefreshToken).to receive(:find_by).and_return(token_record)
 
-      post "/auth/refresh", params: { refresh_token: raw_token }
+      post "/api/rest/v1/auth/refresh", params: { refresh_token: raw_token }
       expect(response).to have_http_status(:unauthorized)
       expect(json["errors"].first["message"]).to eq("Token has expired")
     end
@@ -47,7 +47,7 @@ RSpec.describe "POST /auth/refresh" do
       raw_token = issue_token(user)
       Auth::RefreshTokens::RevokeService.new(raw_token: raw_token).call
 
-      post "/auth/refresh", params: { refresh_token: raw_token }
+      post "/api/rest/v1/auth/refresh", params: { refresh_token: raw_token }
       expect(response).to have_http_status(:unauthorized)
       expect(json["errors"].first["message"]).to eq("Token has been revoked")
     end
@@ -55,7 +55,7 @@ RSpec.describe "POST /auth/refresh" do
 
   context "with an unknown refresh token" do
     it "returns 401" do
-      post "/auth/refresh", params: { refresh_token: "unknown_token" }
+      post "/api/rest/v1/auth/refresh", params: { refresh_token: "unknown_token" }
       expect(response).to have_http_status(:unauthorized)
       expect(json["errors"].first["message"]).to eq("Token not found")
     end

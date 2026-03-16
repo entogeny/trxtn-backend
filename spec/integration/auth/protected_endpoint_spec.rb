@@ -5,7 +5,7 @@ RSpec.describe "Protected endpoints" do
 
   context "with no Authorization header" do
     it "returns 401 with a missing token error" do
-      get "/test/protected"
+      get "/api/rest/v1/test/protected"
       expect(response).to have_http_status(:unauthorized)
       expect(json["error"]).to eq("Missing token")
     end
@@ -18,7 +18,7 @@ RSpec.describe "Protected endpoints" do
         Rails.application.credentials.jwt_secret_key!,
         "HS256"
       )
-      get "/test/protected", headers: { "Authorization" => "Bearer #{expired_token}" }
+      get "/api/rest/v1/test/protected", headers: { "Authorization" => "Bearer #{expired_token}" }
       expect(response).to have_http_status(:unauthorized)
       expect(json["error"]).to eq("Token has expired")
     end
@@ -26,7 +26,7 @@ RSpec.describe "Protected endpoints" do
 
   context "with a malformed JWT" do
     it "returns 401 with an invalid token error" do
-      get "/test/protected", headers: { "Authorization" => "Bearer not.a.valid.token" }
+      get "/api/rest/v1/test/protected", headers: { "Authorization" => "Bearer not.a.valid.token" }
       expect(response).to have_http_status(:unauthorized)
       expect(json["error"]).to eq("Invalid token")
     end
@@ -34,7 +34,7 @@ RSpec.describe "Protected endpoints" do
 
   context "with a valid JWT" do
     it "returns 200" do
-      get "/test/protected", headers: auth_headers(user)
+      get "/api/rest/v1/test/protected", headers: auth_headers(user)
       expect(response).to have_http_status(:ok)
     end
   end
