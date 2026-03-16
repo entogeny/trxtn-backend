@@ -38,7 +38,16 @@ Business logic lives entirely in service objects, not models or controllers.
 - **Models** define data structure, associations, and simple validations. No logic.
 - **Services** own all business logic.
 
-Each service is single-purpose and exposes one public class method: `.call`. The name of the class is the verb; the method is always `.call`.
+All services inherit from `ApplicationService` and expose a single public instance method: `#call`. The name of the class is the verb; the method is always `#call`. Services receive input as a hash, write their result to `output`, and accumulate failures in `errors`. `call` returns `true` on success and `false` on failure, allowing callers to branch without rescuing exceptions.
+
+```ruby
+service = Auth::RefreshTokens::RotateService.new(raw_token: params[:refresh_token])
+if service.call
+  render json: service.output, status: :ok
+else
+  render json: { errors: service.errors }, status: :unauthorized
+end
+```
 
 ## Service Naming Conventions
 

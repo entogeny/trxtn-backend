@@ -3,8 +3,14 @@ require "rails_helper"
 RSpec.describe "POST /auth/refresh" do
   let(:user) { create(:user) }
 
+  def issue_token(user)
+    service = Auth::RefreshTokens::IssueService.new(user: user)
+    service.call
+    service.output[:raw_token]
+  end
+
   context "with a valid refresh token" do
-    let(:raw_token) { Auth::RefreshTokens::IssueService.call(user) }
+    let(:raw_token) { issue_token(user) }
 
     it "returns 200 with a new access token and refresh token" do
       post "/auth/refresh", params: { refresh_token: raw_token }
@@ -32,18 +38,18 @@ RSpec.describe "POST /auth/refresh" do
 
       post "/auth/refresh", params: { refresh_token: raw_token }
       expect(response).to have_http_status(:unauthorized)
-      expect(json["error"]).to eq("Invalid or expired refresh token")
+      expect(json["errors"].first["message"]).to eq("Token has expired")
     end
   end
 
   context "with a revoked refresh token" do
     it "returns 401" do
-      raw_token = Auth::RefreshTokens::IssueService.call(user)
-      Auth::RefreshTokens::RevokeService.call(raw_token)
+      raw_token = issue_token(user)
+      Auth::RefreshTokens::RevokeService.new(raw_token: raw_token).call
 
       post "/auth/refresh", params: { refresh_token: raw_token }
       expect(response).to have_http_status(:unauthorized)
-      expect(json["error"]).to eq("Invalid or expired refresh token")
+      expect(json["errors"].first["message"]).to eq("Token has been revoked")
     end
   end
 
@@ -51,7 +57,7 @@ RSpec.describe "POST /auth/refresh" do
     it "returns 401" do
       post "/auth/refresh", params: { refresh_token: "unknown_token" }
       expect(response).to have_http_status(:unauthorized)
-      expect(json["error"]).to eq("Invalid or expired refresh token")
+      expect(json["errors"].first["message"]).to eq("Token not found")
     end
   end
 end

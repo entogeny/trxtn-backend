@@ -23,24 +23,32 @@ class AuthController < ApplicationController
   end
 
   def refresh
-    result = Auth::RefreshTokens::RotateService.call(params[:refresh_token])
-    render json: result, status: :ok
-  rescue Auth::Errors::TokenNotFound, Auth::Errors::TokenRevoked, Auth::Errors::TokenExpired
-    render json: { error: "Invalid or expired refresh token" }, status: :unauthorized
+    service = Auth::RefreshTokens::RotateService.new(raw_token: params[:refresh_token])
+    if service.call
+      render json: service.output, status: :ok
+    else
+      render json: { errors: service.errors }, status: :unauthorized
+    end
   end
 
   def logout
-    Auth::RefreshTokens::RevokeService.call(params[:refresh_token])
-    head :no_content
-  rescue Auth::Errors::TokenNotFound, Auth::Errors::TokenRevoked
-    render json: { error: "Invalid refresh token" }, status: :unauthorized
+    service = Auth::RefreshTokens::RevokeService.new(raw_token: params[:refresh_token])
+    if service.call
+      head :no_content
+    else
+      render json: { errors: service.errors }, status: :unauthorized
+    end
   end
 
   private
 
   def token_pair(user)
-    access_token = Auth::AccessTokens::EncodeService.call({ sub: user.id })
-    refresh_token = Auth::RefreshTokens::IssueService.call(user)
-    { access_token: access_token, refresh_token: refresh_token }
+    encode_service = Auth::AccessTokens::EncodeService.new(payload: { sub: user.id })
+    encode_service.call
+
+    issue_service = Auth::RefreshTokens::IssueService.new(user: user)
+    issue_service.call
+
+    { access_token: encode_service.output[:token], refresh_token: issue_service.output[:raw_token] }
   end
 end

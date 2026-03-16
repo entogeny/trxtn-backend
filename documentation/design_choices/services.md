@@ -23,21 +23,58 @@ Each service does exactly one thing. The name of the class fully describes that 
 
 If a service is doing two things, it should be two services. If you find yourself naming a service `ProcessAndNotifyService`, that is two services: `ProcessService` and `NotifyService`.
 
-## The `.call` Convention
+## ApplicationService
 
-Services expose a single public class method: `.call`.
+All services inherit from `ApplicationService`. It provides a consistent I/O contract and centralised error handling so individual services only have to express their logic.
+
+`ApplicationService` exposes:
+- `input` — the hash passed to `initialize`
+- `output` — a hash the service writes its result into
+- `errors` — an array of `{ message: }` hashes accumulated during `call`
+- `call` — yields a block, catches `ServiceError`, returns `true` on success and `false` on failure
+- `success?` — `true` if `call` has been called and no errors were collected
+
+Every service follows the same structure:
 
 ```ruby
-# From an external caller (e.g. a controller or job), always use the fully qualified path:
-Auth::AccessTokens::EncodeService.call({ sub: user.id })
-Auth::RefreshTokens::IssueService.call(user)
+class MyService < ApplicationService
+  def initialize(input = {})
+    super
+  end
+
+  def call
+    super do
+      # business logic here
+      self.output = { result: computed_value }
+    end
+  end
+end
 ```
+
+Callers instantiate and call the service, then branch on the return value:
+
+```ruby
+service = Auth::RefreshTokens::IssueService.new(user: user)
+if service.call
+  service.output[:raw_token]
+else
+  service.errors
+end
+```
+
+**Why an instance, not a class method?**
+
+Instance-based services allow `output` and `errors` to live as clean instance state rather than being threaded through return values and exceptions. The caller always knows where to find the result (`service.output`) and any failures (`service.errors`) without coupling to the service's internal branching logic.
+
+## The `.call` Convention
+
+Services expose a single public instance method: `#call`.
 
 **Why `.call` and not a descriptive method name?**
 
-The class name is the verb. `Auth::RefreshTokens::IssueService.call` reads as "call the issue service". Adding `.issue` would be redundant: `Auth::RefreshTokens::IssueService.issue`.
+The class name is the verb. `Auth::RefreshTokens::IssueService#call` reads as "call the issue service". Adding `#issue` would be redundant: `Auth::RefreshTokens::IssueService.new(...).issue`.
 
-`.call` is also the Ruby convention for callable objects. It works with procs, lambdas, and service objects uniformly, which makes services easy to compose and pass as arguments.
+`#call` is also the Ruby convention for callable objects. It works with procs, lambdas, and service objects uniformly, which makes services easy to compose and pass as arguments.
 
 ## Directory Structure
 
@@ -112,11 +149,8 @@ Within a service file, use the shortest unambiguous reference permitted by the l
 
 ```ruby
 # Inside module Auth; module RefreshTokens:
-raise Errors::TokenExpired          # ✓ Auth::Errors resolved via Auth nesting
-raise Auth::Errors::TokenExpired    # ✗ Redundant — repeats what the module already declares
-
-IssueService.call(user)                    # ✓ Same namespace
-AccessTokens::EncodeService.call(payload)  # ✓ Sibling namespace under Auth
+IssueService.new(user: record.user)                    # ✓ Same namespace
+AccessTokens::EncodeService.new(payload: { sub: id })  # ✓ Sibling namespace under Auth
 ```
 
 The `module` declarations at the top of each file are the authoritative source of what is in lexical scope. References inside the file should reflect that scope.
@@ -125,23 +159,56 @@ External callers — controllers, jobs, rake tasks, the console — always use f
 
 ```ruby
 # In a controller:
-Auth::AccessTokens::EncodeService.call({ sub: user.id })
-rescue Auth::Errors::TokenExpired
+Auth::AccessTokens::DecodeService.new(token: token)
+Auth::RefreshTokens::RotateService.new(raw_token: params[:refresh_token])
 ```
 
 This means two reference styles coexist intentionally: short inside the namespace, fully qualified outside it.
 
 ## Error Handling
 
-Services raise named error classes rather than returning error codes or nil. This keeps service code clean and puts error handling decisions in the caller.
+Services own their error handling. Callers never rescue from a service call — they check the boolean return value of `call` (or `success?`) and read `service.errors`.
+
+When a failure condition is encountered inside a service, raise `ServiceError` with a message. `ApplicationService#call` catches it and appends `{ message: }` to `errors`:
 
 ```ruby
-# In a service (inside module Auth):
-raise Errors::TokenExpired
+def call
+  super do
+    if record.nil?
+      raise ServiceError.new("Token not found")
+    end
 
-# In the controller or before_action (outside module Auth):
-rescue Auth::Errors::TokenExpired
-  render_unauthorized("Token has expired")
+    # happy path
+    self.output = { result: value }
+  end
+end
 ```
 
-Domain-specific errors are defined as subclasses of `StandardError` and grouped by domain in an `errors.rb` file within the service namespace.
+For errors originating from external gems (e.g. `JWT::ExpiredSignature`), rescue inside the `call` block and call `add_error` directly:
+
+```ruby
+def call
+  super do
+    decoded = JWT.decode(input[:token], secret, true, algorithm: "HS256")
+    self.output = { payload: decoded.first.with_indifferent_access }
+  rescue JWT::ExpiredSignature
+    add_error("Token has expired")
+  rescue JWT::DecodeError
+    add_error("Invalid token")
+  end
+end
+```
+
+Domain-specific error classes (subclasses of `StandardError`) are not used. They added ceremony — raised immediately only to be caught and re-expressed as a string message — without adding value. `ServiceError` with a message is sufficient.
+
+## Memoization
+
+Instance methods that compute a stable value should be memoized with `@var ||=`:
+
+```ruby
+def secret
+  @secret ||= Rails.application.credentials.jwt_secret_key!
+end
+```
+
+This signals intent: the value is deterministic and will not change for the lifetime of the object. The absence of memoization signals the opposite — that a value may differ between calls. Used consistently, this convention makes the code more expressive without requiring comments to explain it.

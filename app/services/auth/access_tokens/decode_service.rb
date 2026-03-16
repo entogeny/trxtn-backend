@@ -1,19 +1,26 @@
 module Auth
   module AccessTokens
-    class DecodeService
-      def self.call(token)
-        decoded = JWT.decode(token, secret, true, algorithm: "HS256")
-        decoded.first.with_indifferent_access
-      rescue JWT::ExpiredSignature
-        raise Errors::TokenExpired
-      rescue JWT::DecodeError
-        raise Errors::TokenInvalid
+    class DecodeService < ApplicationService
+      def initialize(input = {})
+        super
       end
 
-      def self.secret
-        Rails.application.credentials.jwt_secret_key!
+      def call
+        super do
+          decoded = JWT.decode(input[:token], secret, true, algorithm: "HS256")
+          self.output = { payload: decoded.first.with_indifferent_access }
+        rescue JWT::ExpiredSignature
+          add_error("Token has expired")
+        rescue JWT::DecodeError
+          add_error("Invalid token")
+        end
       end
-      private_class_method :secret
+
+      private
+
+      def secret
+        @secret ||= Rails.application.credentials.jwt_secret_key!
+      end
     end
   end
 end

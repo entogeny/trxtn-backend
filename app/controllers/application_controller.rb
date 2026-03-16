@@ -7,12 +7,12 @@ class ApplicationController < ActionController::API
     token = bearer_token
     return render_unauthorized("Missing token") if token.blank?
 
-    payload = Auth::AccessTokens::DecodeService.call(token)
-    @current_user_id = payload[:sub]
-  rescue Auth::Errors::TokenExpired
-    render_unauthorized("Token has expired")
-  rescue Auth::Errors::TokenInvalid
-    render_unauthorized("Invalid token")
+    service = Auth::AccessTokens::DecodeService.new(token: token)
+    if service.call
+      @current_user_id = service.output[:payload][:sub]
+    else
+      render_unauthorized(service.errors.first[:message])
+    end
   end
 
   def current_user

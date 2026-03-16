@@ -1,14 +1,25 @@
 module Auth
   module RefreshTokens
-    class RevokeService
-      def self.call(raw_token)
-        token_digest = Digest::SHA256.hexdigest(raw_token)
-        record = RefreshToken.find_by(token_digest: token_digest)
+    class RevokeService < ApplicationService
+      def initialize(input = {})
+        super
+      end
 
-        raise Errors::TokenNotFound if record.nil?
-        raise Errors::TokenRevoked if record.revoked_at.present?
+      def call
+        super do
+          token_digest = Digest::SHA256.hexdigest(input[:raw_token])
+          record = RefreshToken.find_by(token_digest: token_digest)
 
-        record.update!(revoked_at: Time.current)
+          if record.nil?
+            raise ServiceError.new("Token not found")
+          end
+
+          if record.revoked_at.present?
+            raise ServiceError.new("Token has already been revoked")
+          end
+
+          record.update!(revoked_at: Time.current)
+        end
       end
     end
   end

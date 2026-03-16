@@ -1,18 +1,23 @@
 module Auth
   module RefreshTokens
-    class IssueService
+    class IssueService < ApplicationService
       REFRESH_TOKEN_TTL = 90.days
 
-      def self.call(user)
-        raw_token = SecureRandom.hex(32)
-        token_digest = Digest::SHA256.hexdigest(raw_token)
+      def initialize(input = {})
+        super
+      end
 
-        user.refresh_tokens.create!(
-          token_digest: token_digest,
-          expires_at: REFRESH_TOKEN_TTL.from_now
-        )
+      def call
+        super do
+          raw_token = SecureRandom.hex(32)
 
-        raw_token
+          input[:user].refresh_tokens.create!(
+            token_digest: Digest::SHA256.hexdigest(raw_token),
+            expires_at: REFRESH_TOKEN_TTL.from_now
+          )
+
+          self.output = { raw_token: raw_token }
+        end
       end
     end
   end

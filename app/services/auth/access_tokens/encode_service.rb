@@ -1,17 +1,24 @@
 module Auth
   module AccessTokens
-    class EncodeService
+    class EncodeService < ApplicationService
       ACCESS_TOKEN_TTL = 1.hour
 
-      def self.call(payload)
-        payload = payload.merge(exp: ACCESS_TOKEN_TTL.from_now.to_i)
-        JWT.encode(payload, secret, "HS256")
+      def initialize(input = {})
+        super
       end
 
-      def self.secret
-        Rails.application.credentials.jwt_secret_key!
+      def call
+        super do
+          payload = input[:payload].merge(exp: ACCESS_TOKEN_TTL.from_now.to_i)
+          self.output = { token: JWT.encode(payload, secret, "HS256") }
+        end
       end
-      private_class_method :secret
+
+      private
+
+      def secret
+        @secret ||= Rails.application.credentials.jwt_secret_key!
+      end
     end
   end
 end

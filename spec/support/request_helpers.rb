@@ -4,8 +4,9 @@ module RequestHelpers
   end
 
   def auth_headers(user)
-    token = Auth::AccessTokens::EncodeService.call({ sub: user.id })
-    { "Authorization" => "Bearer #{token}" }
+    service = Auth::AccessTokens::EncodeService.new(payload: { sub: user.id })
+    service.call
+    { "Authorization" => "Bearer #{service.output[:token]}" }
   end
 end
 
