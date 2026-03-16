@@ -44,12 +44,24 @@ class MyService < ApplicationService
 
   def call
     super do
-      # business logic here
-      self.output = { result: computed_value }
+      step_one
+      step_two
     end
+  end
+
+  private
+
+  def step_one
+    # discrete unit of work
+  end
+
+  def step_two
+    self.output = { result: computed_value }
   end
 end
 ```
+
+`call` is a button pusher — it names the steps in order and nothing else. The implementation of each step lives in a private method.
 
 Callers instantiate and call the service, then branch on the return value:
 
@@ -169,37 +181,105 @@ This means two reference styles coexist intentionally: short inside the namespac
 
 Services own their error handling. Callers never rescue from a service call — they check the boolean return value of `call` (or `success?`) and read `service.errors`.
 
-When a failure condition is encountered inside a service, raise `ServiceError` with a message. `ApplicationService#call` catches it and appends `{ message: }` to `errors`:
+When a failure condition is encountered inside a private step method, raise `ServiceError` with a message. `ApplicationService#call` catches it and appends `{ message: }` to `errors`:
 
 ```ruby
 def call
   super do
-    if record.nil?
-      raise ServiceError.new("Token not found")
-    end
-
-    # happy path
-    self.output = { result: value }
+    find_record
+    do_work
   end
+end
+
+private
+
+def find_record
+  @record = MyModel.find_by(id: input[:id])
+  raise ServiceError.new("Record not found") if @record.nil?
+end
+
+def do_work
+  self.output = { result: @record.value }
 end
 ```
 
-For errors originating from external gems (e.g. `JWT::ExpiredSignature`), rescue inside the `call` block and call `add_error` directly:
+For errors originating from external gems (e.g. `JWT::ExpiredSignature`), rescue inside the private method and call `add_error` directly:
 
 ```ruby
 def call
   super do
-    decoded = JWT.decode(input[:token], secret, true, algorithm: "HS256")
-    self.output = { payload: decoded.first.with_indifferent_access }
-  rescue JWT::ExpiredSignature
-    add_error("Token has expired")
-  rescue JWT::DecodeError
-    add_error("Invalid token")
+    decode_token
   end
+end
+
+private
+
+def decode_token
+  decoded = JWT.decode(input[:token], secret, true, algorithm: "HS256")
+  self.output = { payload: decoded.first.with_indifferent_access }
+rescue JWT::ExpiredSignature
+  add_error("Token has expired")
+rescue JWT::DecodeError
+  add_error("Invalid token")
 end
 ```
 
 Domain-specific error classes (subclasses of `StandardError`) are not used. They added ceremony — raised immediately only to be caught and re-expressed as a string message — without adding value. `ServiceError` with a message is sufficient.
+
+## Private Method Conventions
+
+### `call` is a button pusher
+
+The `call` method names the steps of the operation in order and nothing else. All implementation lives in private methods. This holds even for simple services with a single step — consistency across all services is more valuable than skipping the extraction for trivial cases.
+
+### Private section structure
+
+The private section is divided into two groups, in this order:
+
+1. **Accessor declarations** — `attr_reader` and `attr_accessor`, alphabetized within the group
+2. **Methods** — alphabetized within the group
+
+```ruby
+private
+
+attr_reader :token_record
+
+def find_token_record
+  ...
+end
+
+def revoke_token
+  ...
+end
+
+def validate_token
+  ...
+end
+```
+
+No blank lines between items in each group. One blank line between the groups and before the first method.
+
+### Internal call state
+
+Some services need to pass data between private step methods (e.g. a database record fetched in one step and used in the next). This state is expressed as instance variables with a private `attr_reader`:
+
+```ruby
+private
+
+attr_reader :token_record
+
+def find_token_record
+  @token_record = RefreshToken.find_by(...)
+end
+
+def validate_token
+  raise ServiceError.new("Revoked") if token_record.revoked_at.present?
+end
+```
+
+Use `attr_reader`, not `attr_accessor` — only the designated writer method (the `find_` or `build_` step) should assign the value. There is no legitimate reason for another method to reassign it.
+
+This internal call state is distinct from `input` (provided by the caller) and `output` (returned to the caller). It exists only to connect steps within a single `call` execution.
 
 ## Memoization
 

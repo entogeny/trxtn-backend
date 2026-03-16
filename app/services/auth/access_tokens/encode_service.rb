@@ -9,12 +9,16 @@ module Auth
 
       def call
         super do
-          payload = input[:payload].merge(exp: ACCESS_TOKEN_TTL.from_now.to_i)
-          self.output = { token: JWT.encode(payload, secret, "HS256") }
+          encode_token
         end
       end
 
       private
+
+      def encode_token
+        payload = input[:payload].merge(exp: ACCESS_TOKEN_TTL.from_now.to_i)
+        self.output = { token: JWT.encode(payload, secret, "HS256") }
+      end
 
       def secret
         @secret ||= Rails.application.credentials.jwt_secret_key!

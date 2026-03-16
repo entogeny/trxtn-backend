@@ -7,36 +7,41 @@ module Auth
 
       def call
         super do
-          token_digest = Digest::SHA256.hexdigest(input[:raw_token])
-          record = RefreshToken.find_by(token_digest: token_digest)
-
-          if record.nil?
-            raise ServiceError.new("Token not found")
-          end
-
-          if record.revoked_at.present?
-            raise ServiceError.new("Token has been revoked")
-          end
-
-          if record.expires_at <= Time.current
-            raise ServiceError.new("Token has expired")
-          end
-
-          ActiveRecord::Base.transaction do
-            record.update!(revoked_at: Time.current)
-
-            issue_service = IssueService.new(user: record.user)
-            raise ServiceError.new(issue_service.errors.first[:message]) unless issue_service.call
-
-            encode_service = AccessTokens::EncodeService.new(payload: { sub: record.user.id })
-            raise ServiceError.new(encode_service.errors.first[:message]) unless encode_service.call
-
-            self.output = {
-              access_token: encode_service.output[:token],
-              refresh_token: issue_service.output[:raw_token]
-            }
-          end
+          find_token_record
+          validate_token
+          rotate_token_pair
         end
+      end
+
+      private
+
+      attr_reader :token_record
+
+      def find_token_record
+        @token_record = RefreshToken.find_by(token_digest: Digest::SHA256.hexdigest(input[:raw_token]))
+        raise ServiceError.new("Token not found") if token_record.nil?
+      end
+
+      def rotate_token_pair
+        ActiveRecord::Base.transaction do
+          token_record.update!(revoked_at: Time.current)
+
+          issue_service = IssueService.new(user: token_record.user)
+          raise ServiceError.new(issue_service.errors.first[:message]) unless issue_service.call
+
+          encode_service = AccessTokens::EncodeService.new(payload: { sub: token_record.user.id })
+          raise ServiceError.new(encode_service.errors.first[:message]) unless encode_service.call
+
+          self.output = {
+            access_token: encode_service.output[:token],
+            refresh_token: issue_service.output[:raw_token]
+          }
+        end
+      end
+
+      def validate_token
+        raise ServiceError.new("Token has been revoked") if token_record.revoked_at.present?
+        raise ServiceError.new("Token has expired") if token_record.expires_at <= Time.current
       end
     end
   end
