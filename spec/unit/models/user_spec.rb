@@ -10,9 +10,9 @@ RSpec.describe User, type: :model do
       end
 
       it "is invalid when username is too short" do
-        user = build(:user, username: "ab")
+        user = build(:user, username: "abcd")
         expect(user).not_to be_valid
-        expect(user.errors[:username]).to include("is too short (minimum is 3 characters)")
+        expect(user.errors[:username]).to include("is too short (minimum is 5 characters)")
       end
 
       it "is invalid when username is too long" do
@@ -22,24 +22,42 @@ RSpec.describe User, type: :model do
       end
 
       it "is invalid with special characters" do
-        user = build(:user, username: "bad user!")
+        user = build(:user, username: "baduser!")
         expect(user).not_to be_valid
-        expect(user.errors[:username]).to include("can only contain letters, numbers, and underscores")
+        expect(user.errors[:username]).to include("can only contain lowercase letters")
       end
 
       it "is invalid with a space" do
         user = build(:user, username: "bad user")
         expect(user).not_to be_valid
-        expect(user.errors[:username]).to include("can only contain letters, numbers, and underscores")
+        expect(user.errors[:username]).to include("can only contain lowercase letters")
       end
 
-      it "is valid with letters, numbers, and underscores" do
-        user = build(:user, username: "valid_user_123")
+      it "is invalid with uppercase letters" do
+        user = build(:user, username: "ValidUser")
+        expect(user).not_to be_valid
+        expect(user.errors[:username]).to include("can only contain lowercase letters")
+      end
+
+      it "is invalid with numbers" do
+        user = build(:user, username: "user123")
+        expect(user).not_to be_valid
+        expect(user.errors[:username]).to include("can only contain lowercase letters")
+      end
+
+      it "is invalid with underscores" do
+        user = build(:user, username: "valid_user")
+        expect(user).not_to be_valid
+        expect(user.errors[:username]).to include("can only contain lowercase letters")
+      end
+
+      it "is valid with lowercase letters only" do
+        user = build(:user, username: "validuser")
         expect(user).to be_valid
       end
 
       it "is invalid when username is already taken (case-insensitive)" do
-        create(:user, username: "Alice")
+        create(:user, username: "alice")
         user = build(:user, username: "alice")
         expect(user).not_to be_valid
         expect(user.errors[:username]).to include("has already been taken")
