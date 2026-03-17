@@ -16,11 +16,11 @@ module Auth
     private
 
     def create_user
-      raise ServiceError.new(users_create_service.errors.first[:message]) unless users_create_service.call
+      raise ServiceError.new(users_create_service.errors.first[:message]) if !users_create_service.call
     end
 
     def issue_token_pair
-      raise ServiceError.new(token_pair_service.errors.first[:message]) unless token_pair_service.call
+      raise ServiceError.new(token_pair_service.errors.first[:message]) if !token_pair_service.call
 
       self.output = token_pair_service.output
     end

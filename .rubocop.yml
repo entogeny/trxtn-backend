@@ -1,8 +1,19 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+require:
+  - ./lib/rubocop/cop/custom/no_unless
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
 # Layout/SpaceInsideArrayLiteralBrackets:
 #   Enabled: false
+
+# Disable the built-in cop that pushes toward `unless`
+Style/NegatedIf:
+  Enabled: false
+
+# Prefer `if !condition` over `unless condition`
+Custom/NoUnless:
+  Enabled: true

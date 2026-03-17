@@ -15,11 +15,11 @@ module Auth
     private
 
     def encode_token
-      raise ServiceError.new(encode_service.errors.first[:message]) unless encode_service.call
+      raise ServiceError.new(encode_service.errors.first[:message]) if !encode_service.call
     end
 
     def issue_token
-      raise ServiceError.new(issue_service.errors.first[:message]) unless issue_service.call
+      raise ServiceError.new(issue_service.errors.first[:message]) if !issue_service.call
     end
 
     def compose_token_pair

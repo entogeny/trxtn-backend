@@ -27,10 +27,10 @@ module Auth
           token_record.update!(revoked_at: Time.current)
 
           issue_service = IssueService.new(user: token_record.user)
-          raise ServiceError.new(issue_service.errors.first[:message]) unless issue_service.call
+          raise ServiceError.new(issue_service.errors.first[:message]) if !issue_service.call
 
           encode_service = AccessTokens::EncodeService.new(payload: { sub: token_record.user.id })
-          raise ServiceError.new(encode_service.errors.first[:message]) unless encode_service.call
+          raise ServiceError.new(encode_service.errors.first[:message]) if !encode_service.call
 
           self.output = {
             access_token: encode_service.output[:token],

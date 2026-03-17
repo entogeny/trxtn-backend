@@ -24,11 +24,11 @@ module Auth
 
     def authenticate_user
       # Intentionally vague to prevent username enumeration
-      raise ServiceError.new("Invalid username or password") unless user.authenticate(input[:password])
+      raise ServiceError.new("Invalid username or password") if !user.authenticate(input[:password])
     end
 
     def issue_token_pair
-      raise ServiceError.new(token_pair_service.errors.first[:message]) unless token_pair_service.call
+      raise ServiceError.new(token_pair_service.errors.first[:message]) if !token_pair_service.call
 
       self.output = token_pair_service.output
     end
