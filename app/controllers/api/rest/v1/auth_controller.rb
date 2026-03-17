@@ -9,19 +9,20 @@ module Api
                           password_confirmation: params[:password_confirmation])
 
           if user.save
-            render json: token_pair(user), status: :created
+            service = Auth::TokenPairService.new(user: user)
+            service.call
+            render json: service.output, status: :created
           else
             render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
           end
         end
 
         def login
-          user = User.find_by("LOWER(username) = ?", params[:username]&.downcase)
-
-          if user&.authenticate(params[:password])
-            render json: token_pair(user), status: :ok
+          service = Auth::LoginService.new(username: params[:username], password: params[:password])
+          if service.call
+            render json: service.output, status: :ok
           else
-            render json: { error: "Invalid username or password" }, status: :unauthorized
+            render json: { errors: service.errors }, status: :unauthorized
           end
         end
 
@@ -41,18 +42,6 @@ module Api
           else
             render json: { errors: service.errors }, status: :unauthorized
           end
-        end
-
-        private
-
-        def token_pair(user)
-          encode_service = Auth::AccessTokens::EncodeService.new(payload: { sub: user.id })
-          encode_service.call
-
-          issue_service = Auth::RefreshTokens::IssueService.new(user: user)
-          issue_service.call
-
-          { access_token: encode_service.output[:token], refresh_token: issue_service.output[:raw_token] }
         end
       end
     end

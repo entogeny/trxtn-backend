@@ -23,7 +23,7 @@ RSpec.describe "POST /api/rest/v1/auth/login" do
     it "returns 401 with an error message" do
       post "/api/rest/v1/auth/login", params: { username: "alice", password: "wrongpassword" }
       expect(response).to have_http_status(:unauthorized)
-      expect(json["error"]).to eq("Invalid username or password")
+      expect(json["errors"].first["message"]).to eq("Invalid username or password")
     end
   end
 
@@ -31,7 +31,7 @@ RSpec.describe "POST /api/rest/v1/auth/login" do
     it "returns 401 with an error message" do
       post "/api/rest/v1/auth/login", params: { username: "nobody", password: "password123" }
       expect(response).to have_http_status(:unauthorized)
-      expect(json["error"]).to eq("Invalid username or password")
+      expect(json["errors"].first["message"]).to eq("Invalid username or password")
     end
   end
 end
