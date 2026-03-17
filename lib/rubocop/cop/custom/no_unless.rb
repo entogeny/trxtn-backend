@@ -27,7 +27,9 @@ module RuboCop
         MSG = "Use `if !condition` instead of `unless condition`."
 
         def on_if(node)
-          return if !(node.unless?)
+          if !(node.unless?)
+            return
+          end
 
           add_offense(node.loc.keyword) do |corrector|
             corrector.replace(node.loc.keyword, "if")

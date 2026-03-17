@@ -3,6 +3,7 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
 require:
   - ./lib/rubocop/cop/custom/no_unless
+  - ./lib/rubocop/cop/custom/no_trailing_conditional
 
 # Overwrite or add rules to create your own house style
 #
@@ -16,4 +17,8 @@ Style/NegatedIf:
 
 # Prefer `if !condition` over `unless condition`
 Custom/NoUnless:
+  Enabled: true
+
+# Prefer block form over trailing conditionals
+Custom/NoTrailingConditional:
   Enabled: true

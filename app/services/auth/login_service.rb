@@ -19,16 +19,22 @@ module Auth
     def find_user
       @user = User.find_by("LOWER(username) = ?", input[:username]&.downcase)
       # Intentionally vague to prevent username enumeration
-      raise ServiceError.new("Invalid username or password") if user.nil?
+      if user.nil?
+        raise ServiceError.new("Invalid username or password")
+      end
     end
 
     def authenticate_user
       # Intentionally vague to prevent username enumeration
-      raise ServiceError.new("Invalid username or password") if !user.authenticate(input[:password])
+      if !user.authenticate(input[:password])
+        raise ServiceError.new("Invalid username or password")
+      end
     end
 
     def issue_token_pair
-      raise ServiceError.new(token_pair_service.errors.first[:message]) if !token_pair_service.call
+      if !token_pair_service.call
+        raise ServiceError.new(token_pair_service.errors.first[:message])
+      end
 
       self.output = token_pair_service.output
     end

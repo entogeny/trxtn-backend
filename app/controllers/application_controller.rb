@@ -5,7 +5,9 @@ class ApplicationController < ActionController::API
 
   def authenticate_user!
     token = bearer_token
-    return render_unauthorized("Missing token") if token.blank?
+    if token.blank?
+      return render_unauthorized("Missing token")
+    end
 
     service = Auth::AccessTokens::DecodeService.new(token: token)
     if service.call

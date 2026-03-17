@@ -19,7 +19,9 @@ module Auth
 
       def find_token_record
         @token_record = RefreshToken.find_by(token_digest: Digest::SHA256.hexdigest(input[:raw_token]))
-        raise ServiceError.new("Token not found") if token_record.nil?
+        if token_record.nil?
+          raise ServiceError.new("Token not found")
+        end
       end
 
       def revoke_token
@@ -27,7 +29,9 @@ module Auth
       end
 
       def validate_token
-        raise ServiceError.new("Token has already been revoked") if token_record.revoked_at.present?
+        if token_record.revoked_at.present?
+          raise ServiceError.new("Token has already been revoked")
+        end
       end
     end
   end

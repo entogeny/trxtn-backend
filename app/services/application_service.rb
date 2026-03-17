@@ -7,14 +7,18 @@ class ApplicationService
     @input = input
     @output = {}
 
-    yield if block_given?
+    if block_given?
+      yield
+    end
   end
 
   def call
     self.called = true
 
     begin
-      yield if block_given?
+      if block_given?
+        yield
+      end
     rescue ServiceError => error
       add_error(error.message)
     end
