@@ -77,6 +77,20 @@ module Auth
             expect(record.revoked_at).to be_nil
           end
         end
+
+        context "when EncodeService fails during rotation" do
+          it "fails with the encode service error message" do
+            raw_token = SecureRandom.hex(32)
+            create(:refresh_token, user: user, token_digest: Digest::SHA256.hexdigest(raw_token))
+
+            allow_any_instance_of(AccessTokens::EncodeService).to receive(:call).and_return(false)
+            allow_any_instance_of(AccessTokens::EncodeService).to receive(:errors).and_return([ { message: "encode failed" } ])
+
+            service = described_class.new(raw_token: raw_token)
+            expect(service.call).to be false
+            expect(service.errors.first[:message]).to eq("encode failed")
+          end
+        end
       end
     end
   end
