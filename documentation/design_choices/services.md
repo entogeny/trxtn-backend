@@ -10,6 +10,8 @@ Models define data structure, associations, and direct data validations. They do
 
 Controllers receive requests and render responses. They validate parameters, call the appropriate service, and render the result. They do not contain business logic.
 
+The goal is for controllers to be thin dispatch layers: receive a request, call a service, render the result. Business logic belongs in services — not in controllers. If an action contains conditional logic, direct ActiveRecord calls, or orchestration of multiple operations, that is a signal the logic should be extracted into a service instead.
+
 All business logic lives in services.
 
 This separation means:
@@ -258,6 +260,22 @@ end
 ```
 
 No blank lines between items in each group. One blank line between the groups and before the first method.
+
+### Composite services
+
+A service may orchestrate other services. The sub-services are expressed as memoized private methods — the same pattern used for computed values — and called from discrete step methods:
+
+```ruby
+def create_user
+  raise ServiceError.new(users_create_service.errors.first[:message]) unless users_create_service.call
+end
+
+def users_create_service
+  @users_create_service ||= Users::CreateService.new(...)
+end
+```
+
+**Why memoize sub-services?** The same service object is referenced from both the step method (`.call`) and any subsequent step that reads `.output`. Memoization ensures they reference the same instance rather than constructing two separate objects.
 
 ### Internal call state
 

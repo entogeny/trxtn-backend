@@ -5,18 +5,15 @@ module Api
         skip_before_action :authenticate_user!
 
         def signup
-          users_create_service = Users::CreateService.new(
+          service = Auth::SignupService.new(
             username: params[:username],
             password: params[:password],
             password_confirmation: params[:password_confirmation]
           )
-
-          if users_create_service.call
-            token_service = Auth::TokenPairService.new(user: users_create_service.output[:user])
-            token_service.call
-            render json: token_service.output, status: :created
+          if service.call
+            render json: service.output, status: :created
           else
-            render json: { errors: users_create_service.errors }, status: :unprocessable_entity
+            render json: { errors: service.errors }, status: :unprocessable_entity
           end
         end
 
