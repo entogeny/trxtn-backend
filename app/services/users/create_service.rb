@@ -1,34 +1,17 @@
 module Users
-  class CreateService < ApplicationService
-    def initialize(input = {})
-      super
-    end
-
-    def call
-      super do
-        build_user
-        save_user
-      end
-    end
-
+  class CreateService < Base::CreateService
     private
 
-    attr_reader :user
-
-    def build_user
-      @user = User.new(
+    def assign_attributes
+      record.assign_attributes(
         username: input[:username],
         password: input[:password],
         password_confirmation: input[:password_confirmation]
       )
     end
 
-    def save_user
-      if user.save
-        self.output = { user: user }
-      else
-        user.errors.full_messages.each { |message| add_error(message) }
-      end
+    def model
+      User
     end
   end
 end

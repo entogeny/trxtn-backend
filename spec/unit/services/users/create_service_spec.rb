@@ -25,13 +25,13 @@ module Users
 
         it "outputs the created user" do
           service = create
-          expect(service.output[:user]).to be_a(User)
-          expect(service.output[:user]).to be_persisted
+          expect(service.output[:record]).to be_a(User)
+          expect(service.output[:record]).to be_persisted
         end
 
         it "stores the correct username" do
           service = create(username: "bobby")
-          expect(service.output[:user].username).to eq("bobby")
+          expect(service.output[:record].username).to eq("bobby")
         end
       end
 

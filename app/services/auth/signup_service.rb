@@ -38,7 +38,7 @@ module Auth
     end
 
     def token_pair_service
-      @token_pair_service ||= TokenPairService.new(user: users_create_service.output[:user])
+      @token_pair_service ||= TokenPairService.new(user: users_create_service.output[:record])
     end
   end
 end

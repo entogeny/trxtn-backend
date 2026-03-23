@@ -1,0 +1,2 @@
+class MissingDefinitionError < StandardError
+end
