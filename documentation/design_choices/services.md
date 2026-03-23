@@ -299,6 +299,103 @@ Use `attr_reader`, not `attr_accessor` — only the designated writer method (th
 
 This internal call state is distinct from `input` (provided by the caller) and `output` (returned to the caller). It exists only to connect steps within a single `call` execution.
 
+## Base Services
+
+For common CRUD operations, a set of base service classes under `Base::` provides reusable scaffolding that follows all of the conventions above. Inheriting services only need to declare the model they operate on and, where relevant, override `assign_attributes` to specify which attributes to write.
+
+The available base classes are:
+
+| Class | Purpose |
+|---|---|
+| `Base::CreateService` | Instantiates and saves a new record |
+| `Base::FindService` | Looks up an existing record by id or slug |
+| `Base::UpdateService` | Finds and updates an existing record |
+| `Base::DeleteService` | Finds and destroys an existing record |
+
+### Implementing a base service
+
+At minimum, override `model` to return the ActiveRecord class:
+
+```ruby
+module Users
+  class DeleteService < Base::DeleteService
+    private
+
+    def model
+      User
+    end
+  end
+end
+```
+
+Override `assign_attributes` when the operation requires writing attributes (create and update):
+
+```ruby
+module Users
+  class UpdateService < Base::UpdateService
+    private
+
+    def assign_attributes
+      record.assign_attributes(
+        username: input[:username]
+      )
+    end
+
+    def model
+      User
+    end
+  end
+end
+```
+
+### The `#model` contract
+
+Every base service defines `#model` as a guard:
+
+```ruby
+def model
+  raise MissingDefinitionError.new("#model must be implemented")
+end
+```
+
+`MissingDefinitionError` is not a `ServiceError` and is deliberately not rescued by `ApplicationService#call`. It is a programmer error — a missing implementation — not a runtime failure. It should surface immediately as an exception during development.
+
+### Instance variables vs `output` during execution
+
+`output` represents the final result of a completed, successful operation. It is what a caller reads after checking `success?`. It must only be set once the operation has succeeded.
+
+Instance variables are used to pass interim state between private step methods within a single `call` execution — a record that has been fetched but not yet validated or saved, for example.
+
+**The rule:** set `output` only on confirmed success. Use a private instance variable with an `attr_reader` for everything else.
+
+```ruby
+# Correct — output set only after save succeeds
+def save_record
+  if record.save
+    self.output = { record: record }
+  else
+    record.errors.full_messages.each { |message| add_error(message) }
+  end
+end
+
+# Correct — output set only after validation confirms the record exists
+def validate_presence
+  if @record.nil?
+    raise ServiceError.new("Unable to find record by identifier: #{input[:identifier]}")
+  end
+
+  self.output = { record: @record }
+end
+```
+
+The reason this matters: `output` is a public interface. A caller who does not check `success?` first — or a future reader of the code — should be able to trust that if `output[:record]` is present, the operation completed successfully. Using `output` as a scratchpad during execution breaks that guarantee, because a partial or nil value can be observed in an ambiguous state.
+
+This approach also keeps the three data roles distinct and unambiguous throughout a service's lifecycle:
+
+- `input` — provided by the caller before execution
+- Instance variables — internal to the execution of `call`
+- `output` — returned to the caller after successful execution
+
 ## Memoization
 
 Instance methods that compute a stable value should be memoized with `@var ||=`:
