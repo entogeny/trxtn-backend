@@ -18,6 +18,9 @@ gem "jwt", "~> 2.9"
 # Rack middleware for blocking and throttling requests
 gem "rack-attack"
 
+# Pagination
+gem "kaminari"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
