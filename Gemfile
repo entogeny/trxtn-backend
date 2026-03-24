@@ -13,7 +13,7 @@ gem "puma", ">= 5.0"
 gem "bcrypt", "~> 3.1.7"
 
 # JSON Web Token encoding/decoding
-gem "jwt", "~> 2.9"
+gem "jwt", "~> 3.1"
 
 # Rack middleware for blocking and throttling requests
 gem "rack-attack"
