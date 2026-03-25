@@ -29,10 +29,14 @@ module Base
     end
 
     def save_record
-      if record.save
-        self.output = { record: record }
+      service = Base::SaveService.new(record: record)
+      service.call
+
+      if service.success?
+        self.output = service.output
       else
-        record.errors.full_messages.each { |message| add_error(message) }
+        message = service.errors.map { |error| error[:message] }.join(", ")
+        raise ServiceError.new(message)
       end
     end
   end
