@@ -22,3 +22,8 @@ Custom/NoUnless:
 # Prefer block form over trailing conditionals
 Custom/NoTrailingConditional:
   Enabled: true
+
+# Prefer `raise ServiceError.new(message)` over `raise ServiceError, message`
+Style/RaiseArgs:
+  Enabled: true
+  EnforcedStyle: compact
