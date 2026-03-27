@@ -29,8 +29,12 @@ module Users
       end
 
       context "when the user does not exist" do
-        it "raises ActiveRecord::RecordNotFound" do
-          expect { delete(id: 0) }.to raise_error(ActiveRecord::RecordNotFound)
+        it "returns false" do
+          expect(delete(id: 0).success?).to be false
+        end
+
+        it "populates an error message" do
+          expect(delete(id: 0).errors.map { |e| e[:message] }).to be_present
         end
       end
     end
