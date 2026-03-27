@@ -2,7 +2,6 @@ module Base
   class UpdateService < ApplicationService
     def call
       super do
-        find_record
         assign_attributes
         save_record
       end
@@ -10,7 +9,13 @@ module Base
 
     private
 
-    attr_reader :record
+    def record
+      if !input[:record] && !input[:id]
+        raise ServiceError.new("A record or id must be provided")
+      end
+
+      @record ||= input[:record] || find_record
+    end
 
     def assign_attributes
       # NOTE: This method is meant to be overridden by inheriting services to assign
@@ -19,18 +24,15 @@ module Base
     end
 
     def find_record
-      find_service.call
+      service = "#{model.name.pluralize}::FindService".constantize.new(identifier: input[:id])
+      service.call
 
-      if !find_service.success?
-        message = find_service.errors.map { |error| error[:message] }.join(", ")
+      if !service.success?
+        message = service.errors.map { |error| error[:message] }.join(", ")
         raise ServiceError.new(message)
       end
 
-      @record = find_service.output[:record]
-    end
-
-    def find_service
-      @find_service ||= "#{model.name.pluralize}::FindService".constantize.new(identifier: input[:id])
+      service.output[:record]
     end
 
     def model

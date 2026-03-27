@@ -10,24 +10,24 @@ module Base
       end.new
     end
 
-    def make_fake_find_service(success:, record: nil, error_messages: [])
-      svc = Object.new
-      svc.define_singleton_method(:call) { }
-      svc.define_singleton_method(:success?) { success }
-      if success
-        svc.define_singleton_method(:output) { { record: record } }
-      else
-        svc.define_singleton_method(:errors) { error_messages.map { |m| { message: m } } }
-      end
-      svc
+    def build_service(input)
+      Class.new(described_class).new(input)
     end
 
-    def build_service(fake_find_service, id: 1)
+    def build_service_with_find(record: nil, find_succeeds: true, error_messages: [])
+      fake_record = record
+      succeeds = find_succeeds
+      msgs = error_messages
       Class.new(described_class) do
-        define_method(:model) { Object.new }
-        define_method(:find_service) { fake_find_service }
-        private :model, :find_service
-      end.new(id: id)
+        define_method(:find_record) do
+          if succeeds
+            fake_record
+          else
+            raise ServiceError.new(msgs.join(", "))
+          end
+        end
+        private :find_record
+      end.new(id: 1)
     end
 
     describe "#model" do
@@ -37,51 +37,82 @@ module Base
     end
 
     describe "#call" do
-      context "when the record is found and saves successfully" do
-        let(:record) { make_fake_record(save_result: true) }
-        subject(:service) { build_service(make_fake_find_service(success: true, record: record)) }
+      context "when a record is provided directly" do
+        context "and saves successfully" do
+          let(:record) { make_fake_record(save_result: true) }
+          subject(:service) { build_service(record: record) }
 
-        it "returns true" do
-          expect(service.call).to be true
+          it "returns true" do
+            expect(service.call).to be true
+          end
+
+          it "exposes the record in output" do
+            service.call
+            expect(service.output[:record]).to eq(record)
+          end
         end
 
-        it "exposes the record in output" do
-          service.call
-          expect(service.output[:record]).to eq(record)
+        context "and fails to save" do
+          let(:record) { make_fake_record(save_result: false, error_messages: [ "Name can't be blank" ]) }
+          subject(:service) { build_service(record: record) }
+
+          it "returns false" do
+            expect(service.call).to be false
+          end
+
+          it "populates errors from the record's validation messages" do
+            service.call
+            expect(service.errors.map { |error| error[:message] }).to include("Name can't be blank")
+          end
         end
       end
 
-      context "when the record is found but fails to save" do
-        let(:record) { make_fake_record(save_result: false, error_messages: [ "Name can't be blank" ]) }
-        subject(:service) { build_service(make_fake_find_service(success: true, record: record)) }
+      context "when an id is provided" do
+        context "and the record is found and saves successfully" do
+          let(:record) { make_fake_record(save_result: true) }
+          subject(:service) { build_service_with_find(record: record) }
+
+          it "returns true" do
+            expect(service.call).to be true
+          end
+
+          it "exposes the record in output" do
+            service.call
+            expect(service.output[:record]).to eq(record)
+          end
+        end
+
+        context "and the record is not found" do
+          subject(:service) { build_service_with_find(find_succeeds: false, error_messages: [ "Unable to find record by identifier: 0" ]) }
+
+          it "returns false" do
+            service.call
+            expect(service.success?).to be false
+          end
+
+          it "populates an error message" do
+            service.call
+            expect(service.errors.map { |error| error[:message] }).to include("Unable to find record by identifier: 0")
+          end
+        end
+      end
+
+      context "when neither a record nor an id is provided" do
+        subject(:service) { build_service({}) }
 
         it "returns false" do
           expect(service.call).to be false
         end
 
-        it "populates errors from the record's validation messages" do
-          service.call
-          expect(service.errors.map { |e| e[:message] }).to include("Name can't be blank")
-        end
-      end
-
-      context "when the record is not found" do
-        subject(:service) { build_service(make_fake_find_service(success: false, error_messages: [ "Unable to find record by identifier: 0" ])) }
-
-        it "returns false" do
-          service.call
-          expect(service.success?).to be false
-        end
-
         it "populates an error message" do
           service.call
-          expect(service.errors.map { |e| e[:message] }).to include("Unable to find record by identifier: 0")
+          expect(service.errors.map { |error| error[:message] }).to include("A record or id must be provided")
         end
       end
 
       context "with the default assign_attributes (no subclass override)" do
         it "does not raise" do
-          service = build_service(make_fake_find_service(success: true, record: make_fake_record(save_result: true)))
+          service = build_service(record: make_fake_record(save_result: true))
           expect { service.call }.not_to raise_error
         end
       end
