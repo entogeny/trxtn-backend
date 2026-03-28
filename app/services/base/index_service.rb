@@ -31,8 +31,12 @@ module Base
       @input[:filter] || {}
     end
 
+    def base_scope
+      model.include?(SoftDeletable) ? model.not_soft_deleted : model.all
+    end
+
     def load_all
-      @records = model.all
+      @records = base_scope
     end
 
     def model

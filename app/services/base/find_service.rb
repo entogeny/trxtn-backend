@@ -17,7 +17,7 @@ module Base
     end
 
     def find_by_id
-      @record ||= model.find_by(id: input[:identifier])
+      @record ||= base_scope.find_by(id: input[:identifier])
     end
 
     def find_by_slug
@@ -25,7 +25,11 @@ module Base
         return
       end
 
-      @record = model.find_by(slug: input[:identifier])
+      @record = base_scope.find_by(slug: input[:identifier])
+    end
+
+    def base_scope
+      model.include?(SoftDeletable) ? model.not_soft_deleted : model.all
     end
 
     def model

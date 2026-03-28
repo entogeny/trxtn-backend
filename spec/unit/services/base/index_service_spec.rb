@@ -17,6 +17,7 @@ module Base
 
       model = Object.new
       model.define_singleton_method(:all) { relation_class.new(records) }
+      model.define_singleton_method(:include?) { |_mod| false }
       model
     end
 

@@ -8,6 +8,8 @@ module Base
       model = Object.new
       model.define_singleton_method(:find_by) { |attrs| attrs[:id] ? found : nil }
       model.define_singleton_method(:attribute_method?) { |_attr| has_slug }
+      model.define_singleton_method(:include?) { |_mod| false }
+      model.define_singleton_method(:all) { model }
       model
     end
 
@@ -46,6 +48,8 @@ module Base
           model = Object.new
           model.define_singleton_method(:find_by) { |attrs| attrs[:slug] ? record : nil }
           model.define_singleton_method(:attribute_method?) { |_| true }
+          model.define_singleton_method(:include?) { |_mod| false }
+          model.define_singleton_method(:all) { model }
           model
         end
 
@@ -72,6 +76,8 @@ module Base
             nil
           end
           model.define_singleton_method(:attribute_method?) { |_| false }
+          model.define_singleton_method(:include?) { |_mod| false }
+          model.define_singleton_method(:all) { model }
 
           build_service(model, identifier: "some-slug").call
 

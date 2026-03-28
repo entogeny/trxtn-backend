@@ -7,5 +7,9 @@ FactoryBot.define do
     end
     password { "password123" }
     password_confirmation { "password123" }
+
+    trait :deleted do
+      deleted_at { Time.current }
+    end
   end
 end

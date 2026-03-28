@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include SoftDeletable
+
   has_secure_password
 
   has_many :refresh_tokens, dependent: :destroy
