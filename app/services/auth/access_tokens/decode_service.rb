@@ -1,6 +1,7 @@
 module Auth
   module AccessTokens
     class DecodeService < ApplicationService
+
       def initialize(input = {})
         super
       end
@@ -25,6 +26,7 @@ module Auth
       def secret
         @secret ||= Rails.application.credentials.jwt_secret_key!
       end
+
     end
   end
 end

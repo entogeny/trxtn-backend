@@ -1,5 +1,6 @@
 module Base
   class DeleteService < ApplicationService
+
     def call
       super do
         delete_record
@@ -57,5 +58,6 @@ module Base
         raise ServiceError.new("Unknown strategy: #{strategy}. Must be :soft or :hard")
       end
     end
+
   end
 end

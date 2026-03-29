@@ -1,5 +1,6 @@
 module Base
   class SaveService < ApplicationService
+
     def call
       super do
         if record.save
@@ -15,5 +16,6 @@ module Base
     def record
       input[:record]
     end
+
   end
 end

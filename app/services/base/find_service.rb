@@ -1,5 +1,6 @@
 module Base
   class FindService < ApplicationService
+
     def call
       super do
         find
@@ -49,5 +50,6 @@ module Base
 
       self.output = { record: @record }
     end
+
   end
 end

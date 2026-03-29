@@ -27,3 +27,13 @@ Custom/NoTrailingConditional:
 Style/RaiseArgs:
   Enabled: true
   EnforcedStyle: compact
+
+# Require empty lines inside class bodies
+Layout/EmptyLinesAroundClassBody:
+  Enabled: true
+  EnforcedStyle: empty_lines
+
+# No empty lines inside module bodies (explicit preference over default)
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: true
+  EnforcedStyle: no_empty_lines

@@ -1,5 +1,6 @@
 module Auth
   class LoginService < ApplicationService
+
     def initialize(input = {})
       super
     end
@@ -42,5 +43,6 @@ module Auth
     def token_pair_service
       @token_pair_service ||= TokenPairService.new(user: user)
     end
+
   end
 end

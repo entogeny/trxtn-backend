@@ -1,6 +1,7 @@
 module Auth
   module RefreshTokens
     class IssueService < ApplicationService
+
       REFRESH_TOKEN_TTL = 90.days
 
       def initialize(input = {})
@@ -30,6 +31,7 @@ module Auth
 
         self.output = { raw_token: raw_token }
       end
+
     end
   end
 end

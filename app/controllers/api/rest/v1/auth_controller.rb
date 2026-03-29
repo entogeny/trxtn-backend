@@ -2,6 +2,7 @@ module Api
   module Rest
     module V1
       class AuthController < Api::Rest::V1::BaseController
+
         skip_before_action :authenticate_user!
 
         def signup
@@ -43,6 +44,7 @@ module Api
             render json: { errors: service.errors }, status: :unauthorized
           end
         end
+
       end
     end
   end

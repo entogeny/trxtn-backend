@@ -1,6 +1,7 @@
 module Auth
   module RefreshTokens
     class RevokeService < ApplicationService
+
       def initialize(input = {})
         super
       end
@@ -33,6 +34,7 @@ module Auth
           raise ServiceError.new("Token has already been revoked")
         end
       end
+
     end
   end
 end

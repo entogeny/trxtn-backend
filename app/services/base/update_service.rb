@@ -1,5 +1,6 @@
 module Base
   class UpdateService < ApplicationService
+
     def call
       super do
         assign_attributes
@@ -52,5 +53,6 @@ module Base
         raise ServiceError.new(message)
       end
     end
+
   end
 end

@@ -22,6 +22,7 @@ module RuboCop
       #     do_something
       #   end
       class NoTrailingConditional < Base
+
         extend AutoCorrector
 
         MSG = "Use block form instead of trailing `%<keyword>s`."
@@ -43,6 +44,7 @@ module RuboCop
             corrector.replace(node.source_range, replacement)
           end
         end
+
       end
     end
   end

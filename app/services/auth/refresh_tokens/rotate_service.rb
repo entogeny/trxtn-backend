@@ -1,6 +1,7 @@
 module Auth
   module RefreshTokens
     class RotateService < ApplicationService
+
       def initialize(input = {})
         super
       end
@@ -53,6 +54,7 @@ module Auth
           raise ServiceError.new("Token has expired")
         end
       end
+
     end
   end
 end

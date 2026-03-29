@@ -1,5 +1,6 @@
 module Base
   class HardDeleteService < ApplicationService
+
     def call
       super do
         delete_record
@@ -19,5 +20,6 @@ module Base
     def record
       input[:record] or raise ServiceError.new("A record must be provided")
     end
+
   end
 end

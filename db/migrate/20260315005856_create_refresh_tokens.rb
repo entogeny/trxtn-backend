@@ -1,4 +1,5 @@
 class CreateRefreshTokens < ActiveRecord::Migration[8.1]
+
   def change
     create_table :refresh_tokens, id: :uuid, default: -> { "gen_random_uuid()" } do |t|
       t.references :user, null: false, foreign_key: true, type: :uuid
@@ -10,4 +11,5 @@ class CreateRefreshTokens < ActiveRecord::Migration[8.1]
     end
     add_index :refresh_tokens, :token_digest, unique: true
   end
+
 end

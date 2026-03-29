@@ -1,5 +1,6 @@
 module Users
   class CreateService < Base::CreateService
+
     private
 
     def assign_attributes
@@ -13,5 +14,6 @@ module Users
     def model
       User
     end
+
   end
 end

@@ -1,5 +1,6 @@
 module Auth
   class SignupService < ApplicationService
+
     def initialize(input = {})
       super
     end
@@ -40,5 +41,6 @@ module Auth
     def token_pair_service
       @token_pair_service ||= TokenPairService.new(user: users_create_service.output[:record])
     end
+
   end
 end

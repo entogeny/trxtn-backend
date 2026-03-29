@@ -1,5 +1,6 @@
 module Users
   class UpdateService < Base::UpdateService
+
     private
 
     def assign_attributes
@@ -11,5 +12,6 @@ module Users
     def model
       User
     end
+
   end
 end

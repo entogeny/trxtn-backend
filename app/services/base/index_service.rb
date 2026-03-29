@@ -1,5 +1,6 @@
 module Base
   class IndexService < ApplicationService
+
     PAGINATION_DEFAULTS = {
       page_number: 1,
       page_size: 10
@@ -69,5 +70,6 @@ module Base
     def search_params
       @input[:search] || {}
     end
+
   end
 end

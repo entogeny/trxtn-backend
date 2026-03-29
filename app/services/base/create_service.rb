@@ -1,5 +1,6 @@
 module Base
   class CreateService < ApplicationService
+
     def call
       super do
         initialize_record
@@ -39,5 +40,6 @@ module Base
         raise ServiceError.new(message)
       end
     end
+
   end
 end

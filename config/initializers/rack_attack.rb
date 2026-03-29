@@ -1,4 +1,5 @@
 class Rack::Attack
+
   # Throttle login attempts by IP
   throttle("auth/login/ip", limit: 5, period: 20.seconds) do |req|
     if req.path == "/auth/login" && req.post?
@@ -24,4 +25,5 @@ class Rack::Attack
   self.throttled_responder = lambda do |req|
     [ 429, { "Content-Type" => "application/json" }, [ { error: "Too many requests. Please try again later." }.to_json ] ]
   end
+
 end

@@ -1,4 +1,5 @@
 class ApplicationService
+
   attr_reader :errors, :input, :output
 
   def initialize(input = {})
@@ -44,4 +45,5 @@ class ApplicationService
       message: message
     }
   end
+
 end

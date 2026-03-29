@@ -1,5 +1,6 @@
 module Auth
   class TokenPairService < ApplicationService
+
     def initialize(input = {})
       super
     end
@@ -40,5 +41,6 @@ module Auth
     def issue_service
       @issue_service ||= RefreshTokens::IssueService.new(user: input[:user])
     end
+
   end
 end

@@ -1,5 +1,6 @@
 module Base
   class SoftDeleteService < ApplicationService
+
     def call
       super do
         validate_supports_soft_deletion
@@ -33,5 +34,6 @@ module Base
         raise ServiceError.new("#{record.class.name} does not support soft delete")
       end
     end
+
   end
 end

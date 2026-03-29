@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+
   before_action :authenticate_user!
 
   private
@@ -29,4 +30,5 @@ class ApplicationController < ActionController::API
   def render_unauthorized(message = "Unauthorized")
     render json: { error: message }, status: :unauthorized
   end
+
 end

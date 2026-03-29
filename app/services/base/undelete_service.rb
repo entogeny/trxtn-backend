@@ -1,5 +1,6 @@
 module Base
   class UndeleteService < ApplicationService
+
     def call
       super do
         validate
@@ -57,5 +58,6 @@ module Base
         raise ServiceError.new("Record is not deleted")
       end
     end
+
   end
 end

@@ -22,6 +22,7 @@ module RuboCop
       #   # good (modifier form)
       #   do_something if !condition
       class NoUnless < Base
+
         extend AutoCorrector
 
         MSG = "Use `if !condition` instead of `unless condition`."
@@ -43,6 +44,7 @@ module RuboCop
             end
           end
         end
+
       end
     end
   end
