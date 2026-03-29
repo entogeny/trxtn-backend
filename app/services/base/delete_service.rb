@@ -2,18 +2,21 @@ module Base
   class DeleteService < ApplicationService
     def call
       super do
-        destroy_record
+        delete_record
       end
     end
 
     private
 
-    def record
-      if !input[:record] && !input[:id]
-        raise ServiceError.new("A record or id must be provided")
-      end
+    def delete_record
+      service = strategy_service.new(record: record)
+      service.call
 
-      @record ||= input[:record] || find_record
+      if service.success?
+        self.output = service.output
+      else
+        service.errors.each { |error| add_error(error[:message]) }
+      end
     end
 
     def find_record
@@ -34,40 +37,24 @@ module Base
       raise MissingDefinitionError.new("#model must be implemented")
     end
 
-    def destroy_record
-      case strategy
-      when :soft then soft_delete_record
-      when :hard then hard_delete_record
-      else
-        raise ServiceError.new("Unknown strategy: #{strategy}. Must be :soft or :hard")
+    def record
+      if !input[:record] && !input[:id]
+        raise ServiceError.new("A record or id must be provided")
       end
+
+      @record ||= input[:record] || find_record
     end
 
     def strategy
       input.fetch(:strategy, :soft)
     end
 
-    def soft_delete_record
-      if !record.class.include?(SoftDeletable)
-        raise ServiceError.new("#{record.class.name} does not support soft delete")
-      end
-
-      if record.soft_deleted?
-        raise ServiceError.new("Record is already deleted")
-      end
-
-      if record.soft_delete
-        self.output = { record: record }
+    def strategy_service
+      case strategy
+      when :soft then Base::SoftDeleteService
+      when :hard then Base::HardDeleteService
       else
-        record.errors.full_messages.each { |message| add_error(message) }
-      end
-    end
-
-    def hard_delete_record
-      if record.destroy
-        self.output = { record: record }
-      else
-        record.errors.full_messages.each { |message| add_error(message) }
+        raise ServiceError.new("Unknown strategy: #{strategy}. Must be :soft or :hard")
       end
     end
   end
