@@ -16,6 +16,9 @@ Rails.application.routes.draw do
           post "logout",  to: "auth#logout"
         end
 
+        # Events
+        resources :events, only: [ :index ]
+
         # Test
         get "test/protected", to: "test#protected"
       end

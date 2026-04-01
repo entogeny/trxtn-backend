@@ -78,6 +78,20 @@ module Base
           expect(captured).to eq({ active: true })
         end
       end
+
+      context "with an order override" do
+        it "invokes the order hook as part of the pipeline" do
+          order_called = false
+          fake = make_fake_model(records: [])
+          service = Class.new(described_class) do
+            define_method(:model) { fake }
+            define_method(:order) { order_called = true }
+            private :model, :order
+          end.new
+          service.call
+          expect(order_called).to be true
+        end
+      end
     end
   end
 end

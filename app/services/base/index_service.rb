@@ -11,6 +11,7 @@ module Base
         load_all
         search
         filter
+        order
         paginate
       end
     end
@@ -18,6 +19,10 @@ module Base
     private
 
     attr_reader :records
+
+    def base_scope
+      model.include?(SoftDeletable) ? model.not_soft_deleted : model.all
+    end
 
     def filter
       # NOTE: Does nothing by default. Inheritors can redefine / extend as needed.
@@ -32,10 +37,6 @@ module Base
       @input[:filter] || {}
     end
 
-    def base_scope
-      model.include?(SoftDeletable) ? model.not_soft_deleted : model.all
-    end
-
     def load_all
       @records = base_scope
     end
@@ -44,6 +45,14 @@ module Base
       # NOTE: Must be overwritten by inheriting services with the record's model class.
       #   If you were to do Example.new, it should return Example.
       raise MissingDefinitionError.new("#model must be implemented")
+    end
+
+    def order
+      # NOTE: Does nothing by default. Inheritors can redefine to apply a sort order.
+      #  e.g.
+      #  def order
+      #    @records = @records.order(created_at: :desc)
+      #  end
     end
 
     def paginate
