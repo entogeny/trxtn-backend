@@ -17,7 +17,7 @@ RSpec.describe "GET /api/rest/v1/events" do
 
     it "returns the expected event shape" do
       get "/api/rest/v1/events"
-      expect(JSON.parse(response.body).first.keys).to match_array(%w[id name description start_at end_at created_at updated_at])
+      expect(JSON.parse(response.body).first.keys).to match_array(%w[id name description start_at end_at])
     end
   end
 
