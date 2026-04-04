@@ -8,7 +8,7 @@ module Api
         def index
           service = Events::IndexService.new
           if service.call
-            render json: EventSerializer.render(service.output[:records])
+            render json: EventSerializer.render(service.output[:records], view: :standard), status: :ok
           else
             render json: { errors: service.errors }, status: :internal_server_error
           end
