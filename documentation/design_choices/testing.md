@@ -13,6 +13,11 @@
 ```
 spec/
   unit/         # isolated tests, collaborators stubbed where applicable
+    controllers/
+      concerns/ # unit specs for controller concerns
+    models/
+    serializers/
+    services/
   integration/  # full-stack tests through HTTP, feature-organized
   factories/
   support/
@@ -37,7 +42,11 @@ There is no intermediate "service integration" layer. The unit specs cover each 
 **When to add a new test:**
 - New model validation or association → `spec/unit/models/`
 - New service class → `spec/unit/services/` (stub collaborators)
+- New serializer or view → `spec/unit/serializers/`
+- New controller concern → `spec/unit/controllers/concerns/`
 - New controller action or auth flow → `spec/integration/` (feature folder)
+
+**No unit specs for controllers.** Controllers are thin dispatch layers: receive a request, call a service, render the result. A controller unit spec with stubbed collaborators would test wiring rather than behaviour — asserting that the right methods were called with the right arguments rather than that the API does the right thing. The integration specs cover both success and failure paths end-to-end, which is where controller correctness is most meaningfully verified. If a controller action ever accumulates enough conditional logic to warrant isolation, that is a signal to extract it into a service or concern first.
 
 ## Service Stub Policy
 

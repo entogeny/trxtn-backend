@@ -12,12 +12,20 @@ RSpec.describe "GET /api/rest/v1/events" do
 
     it "returns events ordered by start_at ascending" do
       get "/api/rest/v1/events"
-      expect(JSON.parse(response.body).map { |e| e["id"] }).to eq([ first_event.id, second_event.id ])
+      expect(json["data"].map { |e| e["id"] }).to eq([ first_event.id, second_event.id ])
     end
 
     it "returns the expected event shape" do
       get "/api/rest/v1/events"
-      expect(JSON.parse(response.body).first.keys).to match_array(%w[id name description start_at end_at])
+      expect(json["data"].first.keys).to match_array(%w[id name description start_at end_at])
+    end
+
+    context "when a view is specified via query params" do
+      it "accepts the view param and returns the matching shape" do
+        get "/api/rest/v1/events", params: { serialization: { view: "standard" } }
+        expect(response).to have_http_status(:ok)
+        expect(json["data"].first.keys).to match_array(%w[id name description start_at end_at])
+      end
     end
   end
 
@@ -25,7 +33,7 @@ RSpec.describe "GET /api/rest/v1/events" do
     it "returns an empty array" do
       get "/api/rest/v1/events"
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq([])
+      expect(json["data"]).to eq([])
     end
   end
 

@@ -79,14 +79,30 @@ This is a hard convention. Alphabetical ordering makes it trivially easy to scan
 
 ## Usage in Controllers
 
-Controllers render responses by passing a record or collection directly to the serializer, always with an explicit `view:` and `status:`:
+Controllers render serialized responses through the `Serializable` concern rather than calling serializers directly. The concern is included in any controller that renders model data:
 
 ```ruby
-# Single record
-render json: EventSerializer.render(event, view: :standard), status: :ok
-
-# Collection
-render json: EventSerializer.render(events, view: :standard), status: :ok
+include Concerns::Serializable
 ```
+
+The concern provides two methods:
+
+**`render_serialized_json(serializer, data, options = {}, status: DEFAULT_STATUS_CODE)`** — renders a JSON response. Responses are always root-wrapped under a `data` key. The `view:` defaults to `:standard`. `status:` defaults to `:ok`. Both can be overridden:
+
+```ruby
+# Success — default view and status
+render_serialized_json(EventSerializer, records, { view: serialization_params[:view] })
+
+# Created — explicit status for a POST action
+render_serialized_json(EventSerializer, record, { view: :standard }, status: :created)
+```
+
+**`serialization_params`** — extracts and defaults serialization options from the request params. Clients may specify the view they want rendered:
+
+```
+GET /api/rest/v1/events?serialization[view]=extended
+```
+
+When no `serialization[view]` param is present, `serialization_params` defaults to `{ view: :standard }`.
 
 Controllers do not build response hashes by hand. All field selection and formatting belongs in the serializer.
