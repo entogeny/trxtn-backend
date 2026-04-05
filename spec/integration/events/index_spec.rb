@@ -54,5 +54,10 @@ RSpec.describe "GET /api/rest/v1/events" do
       get "/api/rest/v1/events"
       expect(response).to have_http_status(:internal_server_error)
     end
+
+    it "returns an errors array in the response body" do
+      get "/api/rest/v1/events"
+      expect(json["errors"]).to eq([ { "message" => "something went wrong" } ])
+    end
   end
 end

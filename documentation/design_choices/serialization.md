@@ -79,23 +79,33 @@ This is a hard convention. Alphabetical ordering makes it trivially easy to scan
 
 ## Usage in Controllers
 
-Controllers render serialized responses through the `Serializable` concern rather than calling serializers directly. The concern is included in any controller that renders model data:
+Controllers render serialized responses through the `Serializable` and `Errorable` concerns rather than calling serializers or building response hashes directly:
 
 ```ruby
+include Concerns::Errorable
 include Concerns::Serializable
 ```
 
-The concern provides two methods:
+**`render_serialized_json(serializer, data, options = {}, status: DEFAULT_STATUS_CODE)`** — renders a JSON response. Responses are always root-wrapped under a `data` key. The `view:` defaults to `:standard`. `status:` defaults to `:ok`.
 
-**`render_serialized_json(serializer, data, options = {}, status: DEFAULT_STATUS_CODE)`** — renders a JSON response. Responses are always root-wrapped under a `data` key. The `view:` defaults to `:standard`. `status:` defaults to `:ok`. Both can be overridden:
+**`render_errors_json(errors = [], status: DEFAULT_STATUS)`** — renders an error response. `errors` should be an array of error hashes (matching the service `errors` output). `status:` defaults to `:internal_server_error`.
+
+**Always pass `status:` explicitly at the call site**, even when the value matches the default:
 
 ```ruby
-# Success — default view and status
-render_serialized_json(EventSerializer, records, { view: serialization_params[:view] })
-
-# Created — explicit status for a POST action
-render_serialized_json(EventSerializer, record, { view: :standard }, status: :created)
+def index
+  service = Events::IndexService.new
+  if service.call
+    render_serialized_json(EventSerializer, service.output[:records], {
+      view: serialization_params[:view]
+    }, status: :ok)
+  else
+    render_errors_json(service.errors, status: :internal_server_error)
+  end
+end
 ```
+
+The defaults exist as a safety net for when a status is omitted — not as a substitute for expressing intent. An explicit status documents the action's contract at the call site and ensures a future change to the default cannot silently alter behaviour.
 
 **`serialization_params`** — extracts and defaults serialization options from the request params. Clients may specify the view they want rendered:
 

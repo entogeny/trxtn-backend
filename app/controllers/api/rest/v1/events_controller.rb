@@ -3,6 +3,7 @@ module Api
     module V1
       class EventsController < BaseController
 
+        include Concerns::Errorable
         include Concerns::Serializable
 
         skip_before_action :authenticate_user!, only: [ :index ]
@@ -16,7 +17,7 @@ module Api
               view: serialization_params[:view]
             }, status: :ok)
           else
-            render json: { errors: service.errors }, status: :internal_server_error
+            render_errors_json(service.errors, status: :internal_server_error)
           end
         end
 
