@@ -13,7 +13,7 @@ gem "puma", ">= 5.0"
 gem "blueprinter"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.22"
 
 # JSON Web Token encoding/decoding
 gem "jwt", "~> 2.9"
