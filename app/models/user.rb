@@ -4,7 +4,9 @@ class User < ApplicationRecord
 
   has_secure_password
 
-  has_many :refresh_tokens, dependent: :destroy
+  has_many :refresh_tokens,  dependent: :destroy
+  has_many :owned_events,    class_name: "Event", foreign_key: :owner_id,   dependent: :nullify
+  has_many :created_events,  class_name: "Event", foreign_key: :creator_id, dependent: :nullify
 
   validates :username, presence: true, uniqueness: { case_sensitive: false },
                        format: { with: /\A[a-z]+\z/, message: "can only contain lowercase letters" },

@@ -11,7 +11,7 @@ RSpec.describe "GET /api/rest/v1/events/:id" do
 
     it "returns the expected event shape" do
       get "/api/rest/v1/events/#{event.id}"
-      expect(json["data"].keys).to match_array(%w[id name description start_at end_at])
+      expect(json["data"].keys).to match_array(%w[id name description start_at end_at owner])
     end
 
     it "returns the correct event" do

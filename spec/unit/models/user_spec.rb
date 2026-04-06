@@ -97,5 +97,19 @@ RSpec.describe User, type: :model do
       create(:refresh_token, user: user)
       expect { user.destroy }.to change(RefreshToken, :count).by(-1)
     end
+
+    it "nullifies owned_events owner_id when user is deleted" do
+      user  = create(:user)
+      event = create(:event, owner: user)
+      user.destroy
+      expect(event.reload.owner_id).to be_nil
+    end
+
+    it "has many created_events" do
+      user   = create(:user)
+      event1 = create(:event, creator: user)
+      event2 = create(:event, creator: user)
+      expect(user.created_events).to include(event1, event2)
+    end
   end
 end

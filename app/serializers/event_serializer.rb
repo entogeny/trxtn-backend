@@ -10,10 +10,14 @@ class EventSerializer < BaseSerializer
     field :end_at
     field :name
     field :start_at
+
+    association :owner, blueprint: UserSerializer, view: :base
   end
 
   view :extended do
     include_view :standard
+
+    association :owner, blueprint: UserSerializer, view: :standard
   end
 
 end

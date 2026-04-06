@@ -1,5 +1,8 @@
 class Event < ApplicationRecord
 
+  belongs_to :owner,   class_name: "User", optional: true
+  belongs_to :creator, polymorphic: true,  optional: true
+
   validates :description, presence: true
   validates :name,        presence: true
   validates :start_at,    presence: true

@@ -17,14 +17,14 @@ RSpec.describe "GET /api/rest/v1/events" do
 
     it "returns the expected event shape" do
       get "/api/rest/v1/events"
-      expect(json["data"].first.keys).to match_array(%w[id name description start_at end_at])
+      expect(json["data"].first.keys).to match_array(%w[id name description start_at end_at owner])
     end
 
     context "when a view is specified via query params" do
       it "accepts the view param and returns the matching shape" do
         get "/api/rest/v1/events", params: { serialization: { view: "standard" } }
         expect(response).to have_http_status(:ok)
-        expect(json["data"].first.keys).to match_array(%w[id name description start_at end_at])
+        expect(json["data"].first.keys).to match_array(%w[id name description start_at end_at owner])
       end
     end
   end

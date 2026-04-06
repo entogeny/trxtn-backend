@@ -62,4 +62,28 @@ RSpec.describe Event, type: :model do
       end
     end
   end
+
+  describe "associations" do
+    it "belongs to an owner (User), optionally" do
+      event = build(:event, owner: nil)
+      expect(event).to be_valid
+    end
+
+    it "stores the owner correctly" do
+      user  = create(:user)
+      event = create(:event, owner: user)
+      expect(event.reload.owner).to eq(user)
+    end
+
+    it "belongs to a polymorphic creator, optionally" do
+      event = build(:event, creator: nil)
+      expect(event).to be_valid
+    end
+
+    it "stores the creator correctly" do
+      user  = create(:user)
+      event = create(:event, creator: user)
+      expect(event.reload.creator).to eq(user)
+    end
+  end
 end
