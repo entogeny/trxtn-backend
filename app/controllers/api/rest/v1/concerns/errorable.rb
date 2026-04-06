@@ -9,6 +9,7 @@ module Api
 
           included do
             rescue_from(ActiveRecord::RecordNotFound) { |exception| handle_exception(exception, status: :not_found) }
+            rescue_from(Pundit::NotAuthorizedError) { |exception| handle_exception(exception, status: :forbidden) }
           end
 
           def render_errors_json(errors = [], status: DEFAULT_STATUS)

@@ -4,6 +4,7 @@ module Api
       class AuthController < Api::Rest::V1::BaseController
 
         skip_before_action :authenticate_user!
+        skip_after_action :verify_authorized
 
         def signup
           service = Auth::SignupService.new(

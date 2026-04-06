@@ -1,5 +1,7 @@
 class ApplicationController < ActionController::API
 
+  include Pundit::Authorization
+
   before_action :authenticate_user!
 
   private
@@ -19,6 +21,10 @@ class ApplicationController < ActionController::API
   end
 
   def current_user
+    if !@current_user_id
+      return nil
+    end
+
     @current_user ||= User.find(@current_user_id)
   end
 

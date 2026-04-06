@@ -3,6 +3,8 @@ module Api
     module V1
       class TestController < Api::Rest::V1::BaseController
 
+        skip_after_action :verify_authorized
+
         def protected
           render json: {
             message: "Authenticated successfully",

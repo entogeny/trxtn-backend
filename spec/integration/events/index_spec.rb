@@ -60,4 +60,20 @@ RSpec.describe "GET /api/rest/v1/events" do
       expect(json["errors"]).to eq([ { "message" => "something went wrong" } ])
     end
   end
+
+  context "when authorization is denied" do
+    before do
+      allow_any_instance_of(EventPolicy).to receive(:index?).and_return(false)
+    end
+
+    it "returns 403 forbidden" do
+      get "/api/rest/v1/events"
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns an errors array in the response body" do
+      get "/api/rest/v1/events"
+      expect(json["errors"]).to be_present
+    end
+  end
 end

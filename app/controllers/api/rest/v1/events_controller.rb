@@ -3,12 +3,13 @@ module Api
     module V1
       class EventsController < BaseController
 
-        include Concerns::Errorable
         include Concerns::Serializable
 
         skip_before_action :authenticate_user!, only: [ :index ]
 
         def index
+          authorize Event, :index?
+
           service = Events::IndexService.new
           if service.call
             records = service.output[:records]
