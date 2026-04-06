@@ -12,6 +12,12 @@ RSpec.describe EventPolicy do
     end
   end
 
+  describe "#show?" do
+    it "returns true" do
+      expect(subject.show?).to be true
+    end
+  end
+
   describe "Scope" do
     subject { EventPolicy::Scope.new(user, scope) }
 

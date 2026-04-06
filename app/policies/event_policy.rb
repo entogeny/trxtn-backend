@@ -4,6 +4,10 @@ class EventPolicy < ApplicationPolicy
     true
   end
 
+  def show?
+    true
+  end
+
   class Scope < ApplicationPolicy::Scope
 
     def resolve

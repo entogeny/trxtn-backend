@@ -9,3 +9,9 @@ get {
   body: none
   auth: none
 }
+
+script:post-response {
+  if (res.status === 200 && res.body.data?.length > 0) {
+    bru.setEnvVar("event_id", res.body.data[0].id);
+  }
+}

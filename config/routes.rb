@@ -17,7 +17,7 @@ Rails.application.routes.draw do
         end
 
         # Events
-        resources :events, only: [ :index ]
+        resources :events, only: [ :index, :show ]
 
         # Test
         get "test/protected", to: "test#protected"
