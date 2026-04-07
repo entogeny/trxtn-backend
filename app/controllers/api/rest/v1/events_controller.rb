@@ -38,6 +38,35 @@ module Api
           end
         end
 
+        def create
+          authorize Event, :create?
+
+          service = Events::CreateService.new(
+            current_user: current_user,
+            record_data: {
+              description: event_params[:description],
+              end_at:      event_params[:end_at],
+              name:        event_params[:name],
+              start_at:    event_params[:start_at]
+            }
+          )
+
+          if service.call
+            event = service.output[:record]
+            render_serialized_json(EventSerializer, event, {
+              view: serialization_params[:view]
+            }, status: :created)
+          else
+            render_errors_json(service.errors, status: :unprocessable_content)
+          end
+        end
+
+        private
+
+        def event_params
+          params.require(:event).permit(:description, :end_at, :name, :start_at)
+        end
+
       end
     end
   end

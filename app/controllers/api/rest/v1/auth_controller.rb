@@ -15,7 +15,7 @@ module Api
           if service.call
             render json: service.output, status: :created
           else
-            render json: { errors: service.errors }, status: :unprocessable_entity
+            render json: { errors: service.errors }, status: :unprocessable_content
           end
         end
 

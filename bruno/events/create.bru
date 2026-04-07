@@ -1,0 +1,31 @@
+meta {
+  name: Create Event
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}{{api_prefix}}/events
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "event": {
+      "name": "Test Event",
+      "description": "A test event description",
+      "start_at": "2026-12-01T10:00:00Z"
+    }
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("event_id", res.body.data.id);
+  }
+}
