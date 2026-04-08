@@ -4,6 +4,7 @@ module Base
     def call
       super do
         assign_attributes
+        validate
         save_record
       end
     end
@@ -22,6 +23,11 @@ module Base
       # NOTE: This method is meant to be overridden by inheriting services to assign
       #   the record's attributes that should be updated.
       record.assign_attributes()
+    end
+
+    def validate
+      # NOTE: Override in subclasses to add custom validation logic before saving.
+      #   Raise a ServiceError to halt execution and surface an error message.
     end
 
     def find_record

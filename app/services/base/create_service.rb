@@ -5,6 +5,7 @@ module Base
       super do
         initialize_record
         assign_attributes
+        validate
         save_record
       end
     end
@@ -17,6 +18,11 @@ module Base
       # NOTE: This method is meant to be overridden by inheriting services to assign
       #   the record's attributes, unless you want to create a blank record and validations allow that.
       record.assign_attributes()
+    end
+
+    def validate
+      # NOTE: Override in subclasses to add custom validation logic before saving.
+      #   Raise a ServiceError to halt execution and surface an error message.
     end
 
     def initialize_record

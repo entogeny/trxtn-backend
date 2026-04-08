@@ -26,9 +26,8 @@ module Events
       input[:record_data]
     end
 
-    def save_record
+    def validate
       validate_future_start_at
-      super
     end
 
     def validate_future_start_at

@@ -64,5 +64,28 @@ module Base
         end
       end
     end
+
+    describe "#validate" do
+      it "is a no-op by default" do
+        service = build_service(make_fake_model(save_result: true))
+        expect { service.call }.not_to raise_error
+      end
+
+      context "when overridden in a subclass" do
+        it "is called during #call" do
+          validated = false
+          fake_model = make_fake_model(save_result: true)
+
+          service = Class.new(described_class) do
+            define_method(:model) { fake_model }
+            define_method(:validate) { validated = true }
+            private :model, :validate
+          end.new
+
+          service.call
+          expect(validated).to be true
+        end
+      end
+    end
   end
 end
