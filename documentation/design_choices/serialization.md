@@ -33,9 +33,9 @@ end
 
 Serializers define three standard views, declared as empty shells in `BaseSerializer` and overridden per-serializer:
 
-- **`:base`** — the minimal representation of a record. Intended for embedded or nested associations where only identity and a label are needed.
-- **`:standard`** — the default API response shape. Includes `:base` and adds all fields appropriate for normal endpoints.
-- **`:extended`** — the full representation. Includes `:standard` and adds any fields too expensive or sensitive for everyday use (e.g. aggregates, private data).
+- **`:base`** — identifier only (`id`). Used exclusively for embedding a record as a reference inside another resource's association. Contains no display fields — the consumer is expected to fetch the full record separately if needed.
+- **`:standard`** — the default API response shape. Includes `:base` and adds all fields needed to display the record. Associations within `:standard` are rendered with `view: :base`, keeping them as lightweight references and preventing circular or deep loading.
+- **`:extended`** — the full representation. Includes `:standard` and adds any fields too expensive or sensitive for everyday use (e.g. aggregates, private data). Associations within `:extended` are rendered with `view: :standard`, providing one level of display data for related records.
 
 Declaring all three views in `BaseSerializer` ensures every serializer has a consistent, composable surface. Individual serializers override only the views that add fields.
 

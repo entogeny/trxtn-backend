@@ -20,7 +20,7 @@ RSpec.describe EventSerializer do
       user   = build(:user)
       event  = build(:event, owner: user)
       result = JSON.parse(EventSerializer.render(event, view: :standard))
-      expect(result["owner"].keys).to match_array(%w[id username])
+      expect(result["owner"].keys).to match_array(%w[id])
     end
 
     it "renders owner as null when not set" do

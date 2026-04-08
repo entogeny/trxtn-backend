@@ -1,11 +1,12 @@
 class UserSerializer < BaseSerializer
 
   view :base do
-    field :username
   end
 
   view :standard do
     include_view :base
+
+    field :username
   end
 
   view :extended do
