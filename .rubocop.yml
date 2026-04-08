@@ -37,3 +37,8 @@ Layout/EmptyLinesAroundClassBody:
 Layout/EmptyLinesAroundModuleBody:
   Enabled: true
   EnforcedStyle: no_empty_lines
+
+# Prefer multi-line empty method definitions over single-line
+Style/EmptyMethod:
+  Enabled: true
+  EnforcedStyle: expanded
