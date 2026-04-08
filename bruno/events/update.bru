@@ -1,0 +1,29 @@
+meta {
+  name: Update Event
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}{{api_prefix}}/events/:id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: {{event_id}}
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "event": {
+      "name": "Updated Event Name",
+      "description": "An updated event description",
+      "start_at": "2026-12-01T10:00:00Z"
+    }
+  }
+}

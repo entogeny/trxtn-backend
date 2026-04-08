@@ -38,6 +38,37 @@ module Api
           end
         end
 
+        def update
+          find_service = Events::FindService.new(identifier: params[:id])
+
+          if find_service.call
+            event = find_service.output[:record]
+            authorize event, :update?
+
+            service = Events::UpdateService.new(
+              record: event,
+              record_data: {
+                description: event_params[:description],
+                end_at:      event_params[:end_at],
+                name:        event_params[:name],
+                owner_id:    event_params[:owner_id],
+                start_at:    event_params[:start_at]
+              }
+            )
+
+            if service.call
+              render_serialized_json(EventSerializer, service.output[:record], {
+                view: serialization_params[:view]
+              }, status: :ok)
+            else
+              render_errors_json(service.errors, status: :unprocessable_content)
+            end
+          else
+            skip_authorization
+            render_errors_json(find_service.errors, status: :not_found)
+          end
+        end
+
         def create
           authorize Event, :create?
 
@@ -64,7 +95,7 @@ module Api
         private
 
         def event_params
-          params.require(:event).permit(:description, :end_at, :name, :start_at)
+          params.require(:event).permit(:description, :end_at, :name, :owner_id, :start_at)
         end
 
       end
