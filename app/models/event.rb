@@ -1,5 +1,7 @@
 class Event < ApplicationRecord
 
+  include SoftDeletable
+
   belongs_to :owner,   class_name: "User", optional: true
   belongs_to :creator, polymorphic: true,  optional: true
 

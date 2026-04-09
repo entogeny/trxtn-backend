@@ -69,6 +69,26 @@ module Api
           end
         end
 
+        def destroy
+          find_service = Events::FindService.new(identifier: params[:id])
+
+          if find_service.call
+            event = find_service.output[:record]
+            authorize event, :destroy?
+
+            service = Events::DeleteService.new(record: event)
+
+            if service.call
+              head :no_content
+            else
+              render_errors_json(service.errors, status: :unprocessable_content)
+            end
+          else
+            skip_authorization
+            render_errors_json(find_service.errors, status: :not_found)
+          end
+        end
+
         def create
           authorize Event, :create?
 

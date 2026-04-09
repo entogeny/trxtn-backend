@@ -1,6 +1,8 @@
 module Base
   class DeleteService < ApplicationService
 
+    DEFAULT_STRATEGY = :soft
+
     def call
       super do
         delete_record
@@ -47,7 +49,7 @@ module Base
     end
 
     def strategy
-      input.fetch(:strategy, :soft)
+      input.fetch(:strategy, DEFAULT_STRATEGY)
     end
 
     def strategy_service
